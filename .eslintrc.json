@@ -1,0 +1,11 @@
+{
+    "extends": [
+        "sznm/react",
+        "plugin:react/jsx-runtime",
+        "plugin:@next/next/recommended",
+        "plugin:@tanstack/eslint-plugin-query/recommended"
+    ],
+    "parserOptions": {
+        "project": ["./tsconfig.json"]
+    }
+}

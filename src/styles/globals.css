@@ -1,0 +1,14 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+.wallet-adapter-button-trigger {
+    background-color: var(--chakra-colors-purple-500) !important;
+    height: 40px !important;
+}
+
+.wallet-adapter-button-trigger:hover {
+    background-color: var(--chakra-colors-purple-600) !important;
+}
