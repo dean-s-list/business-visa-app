@@ -6,6 +6,9 @@ const env = createEnv({
         // planetscale
         DB_URL: z.string().nonempty(),
 
+        // resend
+        RESEND_API_KEY: z.string().nonempty(),
+
         // airtable
         AIRTABLE_TOKEN: z.string().nonempty(),
 
@@ -28,6 +31,9 @@ const env = createEnv({
     runtimeEnv: {
         // supabase
         DB_URL: process.env.DB_URL,
+
+        // resend
+        RESEND_API_KEY: process.env.RESEND_API_KEY,
 
         // airtable
         AIRTABLE_TOKEN: process.env.AIRTABLE_TOKEN,
