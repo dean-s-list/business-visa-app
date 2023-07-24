@@ -8,9 +8,9 @@ import {
     mysqlEnum,
     int,
     text,
+    boolean,
 } from "drizzle-orm/mysql-core";
 
-// eslint-disable-next-line import/prefer-default-export
 export const usersTable = mysqlTable(
     "users",
     {
@@ -29,7 +29,31 @@ export const usersTable = mysqlTable(
             "user",
         ]).default("user"),
         nftId: int("nftId"),
+        nftIssuedAt: timestamp("nftIssuedAt"),
         nftExpiresAt: timestamp("nftExpiresAt"),
+        createdAt: timestamp("createdAt").defaultNow(),
+        updatedAt: timestamp("updatedAt").onUpdateNow(),
+    },
+    (users) => ({
+        addressIndex: uniqueIndex("address_idx").on(users.walletAddress),
+    })
+);
+
+export const acceptedApplicantsTable = mysqlTable(
+    "acceptedApplicants",
+    {
+        id: serial("id").primaryKey().autoincrement(),
+        walletAddress: varchar("walletAddress", { length: 50 }).notNull(),
+        name: varchar("name", { length: 250 }),
+        email: varchar("email", { length: 250 }).notNull(),
+        discordId: varchar("discordId", { length: 250 }).notNull(),
+        country: varchar("country", { length: 100 }),
+        nftId: int("nftId"),
+        nftIssuedAt: timestamp("nftIssuedAt"),
+        nftExpiresAt: timestamp("nftExpiresAt"),
+        nftMintAddress: varchar("nftMintAddress", { length: 50 }),
+        nftClaimLink: text("nftClaimLink"),
+        hasClaimed: boolean("hasClaimed").default(false),
         createdAt: timestamp("createdAt").defaultNow(),
         updatedAt: timestamp("updatedAt").onUpdateNow(),
     },
