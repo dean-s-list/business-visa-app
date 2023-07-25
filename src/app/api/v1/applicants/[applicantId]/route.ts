@@ -6,6 +6,7 @@ import {
     BUSINESS_VISA_APPLICANTS_BASE_ID,
     BUSINESS_VISA_APPLICANTS_PROJECT_ID,
 } from "@/src/constants/AIRTABLE";
+import { DEANSLIST_EMAIL } from "@/src/constants/EMAIL";
 import USER_ROLES from "@/src/constants/USER_ROLES";
 import db from "@/src/db";
 import { acceptedApplicantsTable } from "@/src/db/schema";
@@ -20,6 +21,7 @@ import {
     successHandler,
 } from "@/src/lib/utils/api";
 import qstashClient from "@/src/lib/utils/qstash";
+import resend from "@/src/lib/utils/resend";
 import { updateApplicantValidator } from "@/src/lib/validators/applicants";
 
 export async function PUT(
@@ -64,34 +66,43 @@ export async function PUT(
 
         const applicantData = data.fields as Applicant;
 
-        const dbRes = await db.insert(acceptedApplicantsTable).values({
-            walletAddress: applicantData.solana_wallet_address,
-            name: applicantData.name,
-            email: applicantData.email,
-            discordId: applicantData.discord_id,
-            country: applicantData.country,
-        });
+        if (status === "accepted") {
+            const dbRes = await db.insert(acceptedApplicantsTable).values({
+                walletAddress: applicantData.solana_wallet_address,
+                name: applicantData.name,
+                email: applicantData.email,
+                discordId: applicantData.discord_id,
+                country: applicantData.country,
+            });
 
-        const qstashRes = await qstashClient.publishJSON({
-            // url: `${env.NEXT_PUBLIC_API_BASE_URL}/mint-visa`,
-            url: `https://44c2-2409-40d2-101a-9052-5d65-32c6-38f2-1d2d.ngrok-free.app/api/v1/mint-visa`,
-            body: {
-                secret: env.APP_SECRET,
-                applicantId: dbRes.insertId,
-            },
-        });
+            const qstashRes = await qstashClient.publishJSON({
+                // url: `${env.NEXT_PUBLIC_API_BASE_URL}/mint-visa`,
+                url: `https://44c2-2409-40d2-101a-9052-5d65-32c6-38f2-1d2d.ngrok-free.app/api/v1/mint-visa`,
+                body: {
+                    secret: env.APP_SECRET,
+                    applicantId: dbRes.insertId,
+                },
+            });
 
-        if (!qstashRes?.messageId) {
-            await db
-                .delete(acceptedApplicantsTable)
-                .where(
-                    eq(
-                        acceptedApplicantsTable.walletAddress,
-                        applicantData.solana_wallet_address
-                    )
-                );
+            if (!qstashRes?.messageId) {
+                await db
+                    .delete(acceptedApplicantsTable)
+                    .where(
+                        eq(
+                            acceptedApplicantsTable.walletAddress,
+                            applicantData.solana_wallet_address
+                        )
+                    );
 
-            throw new Error("Failed to publish to qstash!");
+                throw new Error("Failed to publish to qstash!");
+            }
+        } else {
+            await resend.sendEmail({
+                to: applicantData.email,
+                from: DEANSLIST_EMAIL,
+                subject: "Your Business Visa is rejected!",
+                text: `Your Business Visa application is rejected!`,
+            });
         }
 
         await airtable

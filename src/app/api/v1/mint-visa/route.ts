@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { DEANSLIST_EMAIL } from "@/src/constants/EMAIL";
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "@/src/constants/UNDERDOG";
 import VISA_STATUS from "@/src/constants/VISA_STATUS";
 import db from "@/src/db";
@@ -15,6 +16,7 @@ import {
     handleApiRouteError,
     successHandler,
 } from "@/src/lib/utils/api";
+import resend from "@/src/lib/utils/resend";
 import underdogApiInstance from "@/src/lib/utils/underdog";
 
 const bodyValidator = z.object({
@@ -111,6 +113,13 @@ export async function POST(req: NextRequest) {
             hasClaimed: false,
             nftClaimLink: underdogClaimLink,
             nftMintAddress: nftMintResponse.data.mintAddress,
+        });
+
+        await resend.sendEmail({
+            to: applicant.email,
+            from: DEANSLIST_EMAIL,
+            subject: "Your Business Visa is ready!",
+            text: `Your Business Visa is ready! Claim it here: ${underdogClaimLink}`,
         });
 
         return NextResponse.json(
