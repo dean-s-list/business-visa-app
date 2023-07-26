@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import axios from "axios";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -8,8 +8,6 @@ import {
 } from "@/src/constants/AIRTABLE";
 import { DEANSLIST_EMAIL } from "@/src/constants/EMAIL";
 import USER_ROLES from "@/src/constants/USER_ROLES";
-import db from "@/src/db";
-import { acceptedApplicantsTable } from "@/src/db/schema";
 import env from "@/src/lib/env/index.mjs";
 import { getAuthorizedUser } from "@/src/lib/middlewares/getAuthorizedUser";
 import type { Applicant } from "@/src/lib/types/applicant";
@@ -20,7 +18,6 @@ import {
     handleApiRouteError,
     successHandler,
 } from "@/src/lib/utils/api";
-import qstashClient from "@/src/lib/utils/qstash";
 import resend from "@/src/lib/utils/resend";
 import { updateApplicantValidator } from "@/src/lib/validators/applicants";
 
@@ -67,34 +64,22 @@ export async function PUT(
         const applicantData = data.fields as Applicant;
 
         if (status === "accepted") {
-            const dbRes = await db.insert(acceptedApplicantsTable).values({
-                walletAddress: applicantData.solana_wallet_address,
-                name: applicantData.name,
-                email: applicantData.email,
-                discordId: applicantData.discord_id,
-                country: applicantData.country,
-            });
-
-            const qstashRes = await qstashClient.publishJSON({
-                // url: `${env.NEXT_PUBLIC_API_BASE_URL}/mint-visa`,
-                url: `https://44c2-2409-40d2-101a-9052-5d65-32c6-38f2-1d2d.ngrok-free.app/api/v1/mint-visa`,
-                body: {
+            const response = await axios.post(
+                `${env.BACKEND_API_SERVER_URL}/applicants`,
+                {
                     secret: env.APP_SECRET,
-                    applicantId: dbRes.insertId,
-                },
-            });
+                    applicant: {
+                        walletAddress: applicantData.solana_wallet_address,
+                        name: applicantData.name,
+                        email: applicantData.email,
+                        discordId: applicantData.discord_id,
+                        country: applicantData.country,
+                    },
+                }
+            );
 
-            if (!qstashRes?.messageId) {
-                await db
-                    .delete(acceptedApplicantsTable)
-                    .where(
-                        eq(
-                            acceptedApplicantsTable.walletAddress,
-                            applicantData.solana_wallet_address
-                        )
-                    );
-
-                throw new Error("Failed to publish to qstash!");
+            if (!response.data || !response.data.success) {
+                throw new Error("Failed to accept applicant!");
             }
         } else {
             await resend.sendEmail({

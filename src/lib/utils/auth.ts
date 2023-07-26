@@ -1,12 +1,11 @@
 import type { SIWS } from "@web3auth/sign-in-with-solana";
-import { eq } from "drizzle-orm";
+import axios from "axios";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getCsrfToken } from "next-auth/react";
 
+import type { ApiResponseType } from "../types";
 import USER_ROLES from "@/src/constants/USER_ROLES";
-import db from "@/src/db";
-import { usersTable } from "@/src/db/schema";
 import env from "@/src/lib/env/index.mjs";
 
 import { logError } from "./general";
@@ -98,18 +97,22 @@ const authOptions: NextAuthOptions = {
                 throw new Error("walletAddress not found in token!");
             }
 
-            const data = await db
-                .select()
-                .from(usersTable)
-                .where(eq(usersTable.walletAddress, walletAddress))
-                .where(eq(usersTable.role, USER_ROLES.ADMIN));
+            const res = await axios.get(
+                `${env.BACKEND_API_SERVER_URL}/users/${walletAddress}?secret=${env.APP_SECRET}&userType=${USER_ROLES.ADMIN}`
+            );
 
-            if (!data || data.length === 0 || !data?.[0]) {
-                throw new Error("User not found!");
+            const data = res.data as ApiResponseType;
+
+            if (!data.success) {
+                throw new Error("Failed to fetch user from backend!");
+            }
+
+            if (!data.result) {
+                throw new Error("User not found in backend!");
             }
 
             // eslint-disable-next-line no-param-reassign
-            session.user = data?.[0];
+            session.user = data.result;
 
             return session;
         },
