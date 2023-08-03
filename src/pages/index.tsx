@@ -9,7 +9,6 @@ import {
     Th,
     Thead,
     Tr,
-    useDisclosure,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useState } from "react";
@@ -50,8 +49,13 @@ const RenderHomePage = () => {
 
     const { mutateAsync } = useUpdateApplicant();
 
-    const acceptAlert = useDisclosure();
-    const rejectAlert = useDisclosure();
+    const [isOpenAcceptAlert, setIsOpenAcceptAlert] = useState<{
+        [applicantId: string]: boolean;
+    }>({});
+
+    const [isOpenRejectAlert, setIsOpenRejectAlert] = useState<{
+        [applicantId: string]: boolean;
+    }>({});
 
     const [isAccepting, setIsAccepting] = useState<{
         [applicantId: string]: boolean;
@@ -60,6 +64,22 @@ const RenderHomePage = () => {
     const [isRejecting, setIsRejecting] = useState<{
         [applicantId: string]: boolean;
     }>({});
+
+    const openAcceptAlert = (id: string) => {
+        setIsOpenAcceptAlert((prevState) => ({ ...prevState, [id]: true }));
+    };
+
+    const closeAcceptAlert = (id: string) => {
+        setIsOpenAcceptAlert((prevState) => ({ ...prevState, [id]: false }));
+    };
+
+    const openRejectAlert = (id: string) => {
+        setIsOpenRejectAlert((prevState) => ({ ...prevState, [id]: true }));
+    };
+
+    const closeRejectAlert = (id: string) => {
+        setIsOpenRejectAlert((prevState) => ({ ...prevState, [id]: false }));
+    };
 
     const acceptHandler = async (applicantId: string) => {
         setIsAccepting((prevState) => ({ ...prevState, [applicantId]: true }));
@@ -208,7 +228,9 @@ const RenderHomePage = () => {
                                                 <Button
                                                     colorScheme="green"
                                                     onClick={() =>
-                                                        acceptAlert.onOpen()
+                                                        openAcceptAlert(
+                                                            applicant.recordId
+                                                        )
                                                     }
                                                     isLoading={
                                                         isAccepting[
@@ -222,7 +244,9 @@ const RenderHomePage = () => {
                                                 <Button
                                                     colorScheme="red"
                                                     onClick={() =>
-                                                        rejectAlert.onOpen()
+                                                        openRejectAlert(
+                                                            applicant.recordId
+                                                        )
                                                     }
                                                     isLoading={
                                                         isRejecting[
@@ -234,11 +258,20 @@ const RenderHomePage = () => {
                                                     Reject
                                                 </Button>
                                             </HStack>
+
                                             <CustomAlertDialog
                                                 title="Accept Applicant"
                                                 body={`Are you sure you want to accept ${applicant.name} into the Business Visa program?`}
-                                                isOpen={acceptAlert.isOpen}
-                                                onClose={acceptAlert.onClose}
+                                                isOpen={
+                                                    isOpenAcceptAlert[
+                                                        applicant.recordId
+                                                    ]
+                                                }
+                                                onClose={() =>
+                                                    closeAcceptAlert(
+                                                        applicant.recordId
+                                                    )
+                                                }
                                                 actionText="Accept"
                                                 actionFn={() =>
                                                     acceptHandler(
@@ -250,8 +283,16 @@ const RenderHomePage = () => {
                                             <CustomAlertDialog
                                                 title="Reject Applicant"
                                                 body={`Are you sure you want to reject ${applicant.name} for the Business Visa program?`}
-                                                isOpen={rejectAlert.isOpen}
-                                                onClose={rejectAlert.onClose}
+                                                isOpen={
+                                                    isOpenRejectAlert[
+                                                        applicant.recordId
+                                                    ]
+                                                }
+                                                onClose={() =>
+                                                    closeRejectAlert(
+                                                        applicant.recordId
+                                                    )
+                                                }
                                                 actionText="Reject"
                                                 actionFn={() =>
                                                     rejectHandler(
