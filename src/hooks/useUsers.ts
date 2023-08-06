@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { Applicant } from "../lib/types/applicant";
+import type { User } from "../lib/types/user";
 import type { ApiResponseType } from "@/src/lib/types";
 import { apiInstance } from "@/src/lib/utils/api";
 
-type ApplicantsApiResponseType = {
-    result: Applicant[];
+type UsersApiResponseType = {
+    result: User[];
 } & ApiResponseType;
 
 const fetchData = async () => {
     const response = (await apiInstance
-        .get("/applicants")
-        .then((res) => res.data)) as ApplicantsApiResponseType;
+        .get("/users")
+        .then((res) => res.data)) as UsersApiResponseType;
 
     if (!response.success) {
         throw new Error(response.message);
@@ -20,13 +20,13 @@ const fetchData = async () => {
     return response.result;
 };
 
-const useApplicants = () => {
+const useUsers = () => {
     return useQuery({
-        queryKey: ["applicants"],
+        queryKey: ["users"],
         queryFn: () => fetchData(),
-        staleTime: 1000 * 60 * 5,
-        refetchInterval: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 10,
+        refetchInterval: 1000 * 60 * 10,
     });
 };
 
-export default useApplicants;
+export default useUsers;

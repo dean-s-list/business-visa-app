@@ -9,6 +9,7 @@ function Header() {
     const router = useRouter();
 
     const isHomePage = router.pathname === "/";
+    const isUsersPage = router.pathname === "/users";
 
     const activeLinkColor = "purple.400";
 
@@ -32,6 +33,13 @@ function Header() {
                         color={isHomePage ? activeLinkColor : "gray.50"}
                     >
                         Home
+                    </Link>
+                    <Link
+                        as={NextLink}
+                        href="/users"
+                        color={isUsersPage ? activeLinkColor : "gray.50"}
+                    >
+                        Users
                     </Link>
                 </HStack>
 
