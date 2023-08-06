@@ -36,11 +36,17 @@ export async function GET() {
             throw new Error("No data found!");
         }
 
-        const applicants: Applicant[] = [];
+        let applicants: Applicant[] = [];
 
         data.forEach((row) => {
             applicants.push({ recordId: row.id, ...row.fields } as Applicant);
         });
+
+        const order = { pending: 1, accepted: 2, rejected: 3 };
+
+        applicants = applicants.sort(
+            (a, b) => order[a.status] - order[b.status]
+        );
 
         return NextResponse.json(
             successHandler(applicants, "Applicants fetched successfully!")
