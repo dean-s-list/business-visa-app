@@ -30,6 +30,7 @@
         "@tanstack/react-query-devtools": "^4.32.0",
         "@upstash/qstash": "^0.3.6",
         "@upstash/redis": "^1.22.0",
+        "@vercel/og": "^0.5.11",
         "@web3auth/sign-in-with-solana": "^2.0.0",
         "airtable": "^0.12.1",
         "axios": "^1.4.0",
