@@ -47,7 +47,9 @@ export default async function handler(req: NextRequest) {
                         position: "relative",
                     }}
                 >
-                    <p tw="absolute text-sm top-[265px] left-[222px]">{name}</p>
+                    <p tw="absolute text-sm top-[265px] left-[222px] max-w-[190px]">
+                        {name}
+                    </p>
                     <p tw="absolute text-sm top-[323px] left-[222px]">
                         {status}
                     </p>
