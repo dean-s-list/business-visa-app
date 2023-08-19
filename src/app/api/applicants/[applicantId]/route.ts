@@ -8,6 +8,7 @@ import {
 } from "@/src/constants/AIRTABLE";
 import { DEANSLIST_EMAIL } from "@/src/constants/EMAIL";
 import USER_ROLES from "@/src/constants/USER_ROLES";
+import VisaRejectedEmail from "@/src/emails/visa-rejected";
 import env from "@/src/lib/env/index.mjs";
 import { getAuthorizedUser } from "@/src/lib/middlewares/getAuthorizedUser";
 import type { Applicant } from "@/src/lib/types/applicant";
@@ -85,8 +86,8 @@ export async function PUT(
             await resend.sendEmail({
                 to: applicantData.email,
                 from: DEANSLIST_EMAIL,
-                subject: "Your Business Visa is rejected!",
-                text: `Your Business Visa application is rejected!`,
+                subject: "Your business visa application has been rejected.",
+                react: VisaRejectedEmail(),
             });
         }
 
