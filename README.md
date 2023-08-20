@@ -7,8 +7,8 @@ Welcome to the forefront of decentralized community engagement! Our pioneering O
 **[Link to Application Form To Test](https://airtable.com/shrVVlMxVxiB6whOJ)**
 
 ## Github Repositories Links:
-**[Business Visa Frontend](https://github.com/Dean-s-List/business-visa-app)**
-**[Business Visa Server](https://github.com/Dean-s-List/business-visa-server)**
+- **[Business Visa Frontend](https://github.com/Dean-s-List/business-visa-app)**
+- **[Business Visa Server](https://github.com/Dean-s-List/business-visa-server)**
 
 ## Description:
 
