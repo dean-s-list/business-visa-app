@@ -1,11 +1,8 @@
 import type { SIWS } from "@web3auth/sign-in-with-solana";
-import axios from "axios";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getCsrfToken } from "next-auth/react";
 
-import type { ApiResponseType } from "../types";
-import USER_ROLES from "@/src/constants/USER_ROLES";
 import env from "@/src/lib/env/index.mjs";
 
 import { logError } from "./general";
@@ -97,22 +94,17 @@ const authOptions: NextAuthOptions = {
                 throw new Error("walletAddress not found in token!");
             }
 
-            const res = await axios.get(
-                `${env.BACKEND_API_SERVER_URL}/users/${walletAddress}?secret=${env.APP_SECRET}&userType=${USER_ROLES.ADMIN}`
-            );
+            const adminWallets = env.ADMIN_WALLETS.split(",");
 
-            const data = res.data as ApiResponseType;
-
-            if (!data.success) {
-                throw new Error("Failed to fetch user from backend!");
-            }
-
-            if (!data.result) {
-                throw new Error("User not found in backend!");
+            if (!adminWallets.includes(walletAddress)) {
+                throw new Error("walletAddress is not an admin!");
             }
 
             // eslint-disable-next-line no-param-reassign
-            session.user = data.result;
+            session.user = {
+                walletAddress,
+                role: "admin",
+            };
 
             return session;
         },

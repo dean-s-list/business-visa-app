@@ -19,6 +19,7 @@ const env = createEnv({
 
         // app
         APP_SECRET: z.string().nonempty(),
+        ADMIN_WALLETS: z.string().nonempty(),
     },
     client: {
         // solana
@@ -59,6 +60,7 @@ const env = createEnv({
         // app
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
         APP_SECRET: process.env.APP_SECRET,
+        ADMIN_WALLETS: process.env.ADMIN_WALLETS,
     },
 });
 
