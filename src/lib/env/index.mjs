@@ -10,6 +10,8 @@ const env = createEnv({
 
         // airtable
         AIRTABLE_TOKEN: z.string().nonempty(),
+        AIRTABLE_BUSINESS_VISA_APPLICANTS_BASE_ID: z.string().nonempty(),
+        AIRTABLE_BUSINESS_VISA_APPLICANTS_PROJECT_ID: z.string().nonempty(),
 
         // next-auth
         NEXTAUTH_URL: z.string().url(),
@@ -38,6 +40,10 @@ const env = createEnv({
 
         // airtable
         AIRTABLE_TOKEN: process.env.AIRTABLE_TOKEN,
+        AIRTABLE_BUSINESS_VISA_APPLICANTS_BASE_ID:
+            process.env.AIRTABLE_BUSINESS_VISA_APPLICANTS_BASE_ID,
+        AIRTABLE_BUSINESS_VISA_APPLICANTS_PROJECT_ID:
+            process.env.AIRTABLE_BUSINESS_VISA_APPLICANTS_PROJECT_ID,
 
         // next-auth
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
