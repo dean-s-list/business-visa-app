@@ -1,21 +1,16 @@
 export type Applicant = {
-    recordId: string;
-    country: string;
-    created_at: string;
-    created_by?: {
-        id: string;
-        email: string;
-        name: string;
-    };
-    discord_id: string;
-    discover: string;
-    email: string;
-    expectations: string;
-    expectations_text: string;
     id: number;
     name: string;
-    projects: string;
+    email: string;
+    walletAddress: string;
+    discordId: string;
+    discovery: string;
+    country: string;
+    projectDetails: string | null;
+    expectation: string;
     skills: string[];
-    solana_wallet_address: string;
+    expectationDetails: string;
     status: "pending" | "rejected" | "accepted";
+    createdAt: string;
+    updatedAt: string;
 };

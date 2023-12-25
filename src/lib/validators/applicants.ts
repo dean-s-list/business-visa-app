@@ -6,6 +6,7 @@ export const updateApplicantValidator = z.object({
         z.literal("rejected"),
         z.literal("pending"),
     ]),
+    email: z.string().email(),
 });
 
 export type UpdateApplicantType = z.infer<typeof updateApplicantValidator>;
