@@ -51,7 +51,7 @@ export async function PUT(
             `${env.BACKEND_API_SERVER_URL}/applicants`,
             {
                 secret: env.APP_SECRET,
-                applicantId,
+                applicantId: parseInt(applicantId, 10),
                 status,
             }
         );

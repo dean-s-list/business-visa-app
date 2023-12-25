@@ -149,6 +149,19 @@ const RenderHomePage = () => {
     return (
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
             {data.map((applicant) => {
+                let statusColor;
+
+                if (applicant.status === "accepted") {
+                    statusColor = "green.500";
+                }
+
+                if (applicant.status === "rejected") {
+                    statusColor = "red.500";
+                }
+
+                if (applicant.status === "pending") {
+                    statusColor = "yellow.500";
+                }
                 return (
                     <VStack
                         w="100%"
@@ -250,7 +263,7 @@ const RenderHomePage = () => {
                         </VStack>
                         <VStack w="100%" alignItems="flex-start">
                             <Text fontWeight={600}>Application Status</Text>
-                            <Text color="purple.400">
+                            <Text color={statusColor}>
                                 {applicant.status === "accepted" && "Accepted"}
                                 {applicant.status === "rejected" && "Rejected"}
                                 {applicant.status === "pending" && "Pending"}
