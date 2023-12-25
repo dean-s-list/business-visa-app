@@ -2,17 +2,11 @@ import axios from "axios";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import {
-    BUSINESS_VISA_APPLICANTS_BASE_ID,
-    BUSINESS_VISA_APPLICANTS_PROJECT_ID,
-} from "@/src/constants/AIRTABLE";
 import { DEANSLIST_EMAIL } from "@/src/constants/EMAIL";
 import USER_ROLES from "@/src/constants/USER_ROLES";
 import VisaRejectedEmail from "@/src/emails/visa-rejected";
 import env from "@/src/lib/env/index.mjs";
 import { getAuthorizedUser } from "@/src/lib/middlewares/getAuthorizedUser";
-import type { Applicant } from "@/src/lib/types/applicant";
-import airtable from "@/src/lib/utils/airtable";
 import {
     handleApiAuthError,
     handleApiClientError,
@@ -51,50 +45,29 @@ export async function PUT(
             return handleApiClientError();
         }
 
-        const { status } = bodyValidationResult.data;
+        const { status, email } = bodyValidationResult.data;
 
-        const data = await airtable
-            .base(BUSINESS_VISA_APPLICANTS_BASE_ID)
-            .table(BUSINESS_VISA_APPLICANTS_PROJECT_ID)
-            .find(applicantId);
+        const response = await axios.put(
+            `${env.BACKEND_API_SERVER_URL}/applicants`,
+            {
+                secret: env.APP_SECRET,
+                applicantId,
+                status,
+            }
+        );
 
-        if (!data) {
-            throw new Error("Failed to find applicant from airtable!");
+        if (!response.data || !response.data.success) {
+            throw new Error("Failed to accept or reject applicant!");
         }
 
-        const applicantData = data.fields as Applicant;
-
-        if (status === "accepted") {
-            const response = await axios.post(
-                `${env.BACKEND_API_SERVER_URL}/applicants`,
-                {
-                    secret: env.APP_SECRET,
-                    applicant: {
-                        walletAddress: applicantData.solana_wallet_address,
-                        name: applicantData.name,
-                        email: applicantData.email,
-                        discordId: applicantData.discord_id,
-                        country: applicantData.country,
-                    },
-                }
-            );
-
-            if (!response.data || !response.data.success) {
-                throw new Error("Failed to accept applicant!");
-            }
-        } else {
+        if (status === "rejected") {
             await resend.sendEmail({
-                to: applicantData.email,
+                to: email,
                 from: DEANSLIST_EMAIL,
                 subject: "Your business visa application has been rejected.",
                 react: VisaRejectedEmail(),
             });
         }
-
-        await airtable
-            .base(BUSINESS_VISA_APPLICANTS_BASE_ID)
-            .table(BUSINESS_VISA_APPLICANTS_PROJECT_ID)
-            .update(applicantId, { status });
 
         return NextResponse.json(
             successHandler({ applicantId }, "Applicant updated successfully!")

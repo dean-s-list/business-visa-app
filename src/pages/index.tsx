@@ -2,14 +2,11 @@ import {
     Box,
     Button,
     HStack,
-    Table,
-    TableContainer,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr,
+    SimpleGrid,
+    Text,
+    VStack,
 } from "@chakra-ui/react";
+import { format } from "date-fns";
 import Head from "next/head";
 import { useState } from "react";
 
@@ -27,22 +24,6 @@ import CustomContainer from "@/src/components/common/CustomContainer";
 import PageDataLoading from "@/src/components/common/PageDataLoading";
 import PageDataNotFound from "@/src/components/common/PageDataNotFound";
 import PageError from "@/src/components/common/PageError";
-
-const applicantsTableColumns = [
-    { name: "ID", isNumeric: false },
-    { name: "Name" },
-    { name: "Email" },
-    { name: "Solana Wallet Address" },
-    { name: "Discord Id" },
-    { name: "How you discovered?" },
-    { name: "Country" },
-    { name: "Projects" },
-    { name: "One Expectation" },
-    { name: "Skills" },
-    { name: "Other Expectations" },
-    { name: "Status" },
-    { name: "Actions" },
-];
 
 const RenderHomePage = () => {
     const { isLoading, isFetching, data, isError, refetch } = useApplicants();
@@ -65,23 +46,23 @@ const RenderHomePage = () => {
         [applicantId: string]: boolean;
     }>({});
 
-    const openAcceptAlert = (id: string) => {
+    const openAcceptAlert = (id: number) => {
         setIsOpenAcceptAlert((prevState) => ({ ...prevState, [id]: true }));
     };
 
-    const closeAcceptAlert = (id: string) => {
+    const closeAcceptAlert = (id: number) => {
         setIsOpenAcceptAlert((prevState) => ({ ...prevState, [id]: false }));
     };
 
-    const openRejectAlert = (id: string) => {
+    const openRejectAlert = (id: number) => {
         setIsOpenRejectAlert((prevState) => ({ ...prevState, [id]: true }));
     };
 
-    const closeRejectAlert = (id: string) => {
+    const closeRejectAlert = (id: number) => {
         setIsOpenRejectAlert((prevState) => ({ ...prevState, [id]: false }));
     };
 
-    const acceptHandler = async (applicantId: string) => {
+    const acceptHandler = async (applicantId: number, email: string) => {
         setIsAccepting((prevState) => ({ ...prevState, [applicantId]: true }));
         const toastId = "accept-applicant";
 
@@ -93,7 +74,7 @@ const RenderHomePage = () => {
         try {
             const response = await mutateAsync({
                 id: applicantId,
-                data: { status: "accepted" },
+                data: { status: "accepted", email },
             });
 
             if (!response.success) {
@@ -114,7 +95,7 @@ const RenderHomePage = () => {
         setIsAccepting((prevState) => ({ ...prevState, [applicantId]: false }));
     };
 
-    const rejectHandler = async (applicantId: string) => {
+    const rejectHandler = async (applicantId: number, email: string) => {
         setIsRejecting((prevState) => ({ ...prevState, [applicantId]: true }));
         const toastId = "reject-applicant";
 
@@ -126,7 +107,7 @@ const RenderHomePage = () => {
         try {
             const response = await mutateAsync({
                 id: applicantId,
-                data: { status: "rejected" },
+                data: { status: "rejected", email },
             });
 
             if (!response.success) {
@@ -166,150 +147,183 @@ const RenderHomePage = () => {
     }
 
     return (
-        <TableContainer>
-            <Table colorScheme="purple">
-                <Thead>
-                    <Tr>
-                        {applicantsTableColumns.map((col) => {
-                            return (
-                                <Th
-                                    color="purple.400"
-                                    key={col.name}
-                                    isNumeric={col?.isNumeric}
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+            {data.map((applicant) => {
+                return (
+                    <VStack
+                        w="100%"
+                        key={applicant.id}
+                        border="2px"
+                        borderColor="white"
+                        borderRadius="10px"
+                        p={4}
+                        alignItems="flex-start"
+                        spacing={6}
+                        wordBreak="break-all"
+                    >
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Applicant ID</Text>
+                            <Text color="purple.400">{applicant.id}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Name</Text>
+                            <Text color="purple.400">{applicant.name}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Wallet Address</Text>
+                            <Text color="purple.400">
+                                {applicant.walletAddress}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Email</Text>
+                            <Text color="purple.400">{applicant.email}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Discord Username</Text>
+                            <Text color="purple.400">
+                                {applicant.discordId}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Q: How did you discover Dean&apos;s List?
+                            </Text>
+                            <Text color="purple.400">
+                                {applicant.discovery}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Country</Text>
+                            <Text color="purple.400">{applicant.country}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Q: Do you have a project?
+                            </Text>
+                            <Text color="purple.400">
+                                {applicant.projectDetails || "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Q: What do you expect from/after your Visa?
+                            </Text>
+                            <Text color="purple.400">
+                                {applicant.expectation}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Skills</Text>
+                            <Text color="purple.400">
+                                {applicant.skills?.join(", ") || "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Q: What do you expect from/after your Visa?
+                                (Elaborate Here as much as possible.)
+                            </Text>
+                            <Text color="purple.400">
+                                {applicant.expectationDetails}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Submission Date</Text>
+                            <Text color="purple.400">
+                                {format(
+                                    new Date(applicant.createdAt),
+                                    "MMM dd, yyyy hh:mm a"
+                                )}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Update Date</Text>
+                            <Text color="purple.400">
+                                {applicant.updatedAt
+                                    ? format(
+                                          new Date(applicant.updatedAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Application Status</Text>
+                            <Text color="purple.400">
+                                {applicant.status === "accepted" && "Accepted"}
+                                {applicant.status === "rejected" && "Rejected"}
+                                {applicant.status === "pending" && "Pending"}
+                            </Text>
+                        </VStack>
+
+                        {applicant.status === "pending" && (
+                            <>
+                                <HStack
+                                    w="100%"
+                                    justifyContent="flex-start"
+                                    spacing={4}
                                 >
-                                    {col.name}
-                                </Th>
-                            );
-                        })}
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {data?.map((applicant) => {
-                        const isAccepted = applicant.status === "accepted";
-                        const isRejected = applicant.status === "rejected";
+                                    <Button
+                                        colorScheme="green"
+                                        onClick={() =>
+                                            openAcceptAlert(applicant.id)
+                                        }
+                                        isLoading={isAccepting[applicant.id]}
+                                        loadingText="Accepting"
+                                    >
+                                        Accept
+                                    </Button>
+                                    <Button
+                                        colorScheme="red"
+                                        onClick={() =>
+                                            openRejectAlert(applicant.id)
+                                        }
+                                        isLoading={isRejecting[applicant.id]}
+                                        loadingText="Rejecting"
+                                    >
+                                        Reject
+                                    </Button>
+                                </HStack>
 
-                        let statusColor = "yellow.500";
-
-                        if (isAccepted) {
-                            statusColor = "green.500";
-                        }
-
-                        if (isRejected) {
-                            statusColor = "red.500";
-                        }
-
-                        return (
-                            <Tr key={applicant.id} color={statusColor}>
-                                <Td>{applicant.id}</Td>
-                                <Td>{applicant.name}</Td>
-                                <Td>{applicant.email}</Td>
-                                <Td>{applicant.solana_wallet_address}</Td>
-                                <Td>{applicant.discord_id}</Td>
-                                <Td>{applicant.discover}</Td>
-                                <Td>{applicant.country}</Td>
-                                <Td>{applicant.projects}</Td>
-                                <Td>{applicant.expectations}</Td>
-                                <Td>
-                                    {applicant.skills
-                                        ?.join(", ")
-                                        .replace(/,$/, "")}
-                                </Td>
-                                <Td>{applicant.expectations_text}</Td>
-                                <Td>{applicant.status}</Td>
-
-                                <Td>
-                                    {applicant.status === "accepted" &&
-                                        "Accepted"}
-                                    {applicant.status === "rejected" &&
-                                        "Rejected"}
-                                    {applicant.status === "pending" && (
-                                        <>
-                                            <HStack spacing={3}>
-                                                <Button
-                                                    colorScheme="green"
-                                                    onClick={() =>
-                                                        openAcceptAlert(
-                                                            applicant.recordId
-                                                        )
-                                                    }
-                                                    isLoading={
-                                                        isAccepting[
-                                                            applicant.recordId
-                                                        ]
-                                                    }
-                                                    loadingText="Accepting"
-                                                >
-                                                    Accept
-                                                </Button>
-                                                <Button
-                                                    colorScheme="red"
-                                                    onClick={() =>
-                                                        openRejectAlert(
-                                                            applicant.recordId
-                                                        )
-                                                    }
-                                                    isLoading={
-                                                        isRejecting[
-                                                            applicant.recordId
-                                                        ]
-                                                    }
-                                                    loadingText="Rejecting"
-                                                >
-                                                    Reject
-                                                </Button>
-                                            </HStack>
-
-                                            <CustomAlertDialog
-                                                title="Accept Applicant"
-                                                body={`Are you sure you want to accept ${applicant.name} into the Business Visa program?`}
-                                                isOpen={
-                                                    isOpenAcceptAlert[
-                                                        applicant.recordId
-                                                    ]
-                                                }
-                                                onClose={() =>
-                                                    closeAcceptAlert(
-                                                        applicant.recordId
-                                                    )
-                                                }
-                                                actionText="Accept"
-                                                actionFn={() =>
-                                                    acceptHandler(
-                                                        applicant.recordId
-                                                    )
-                                                }
-                                                type="success"
-                                            />
-                                            <CustomAlertDialog
-                                                title="Reject Applicant"
-                                                body={`Are you sure you want to reject ${applicant.name} for the Business Visa program?`}
-                                                isOpen={
-                                                    isOpenRejectAlert[
-                                                        applicant.recordId
-                                                    ]
-                                                }
-                                                onClose={() =>
-                                                    closeRejectAlert(
-                                                        applicant.recordId
-                                                    )
-                                                }
-                                                actionText="Reject"
-                                                actionFn={() =>
-                                                    rejectHandler(
-                                                        applicant.recordId
-                                                    )
-                                                }
-                                                type="danger"
-                                            />
-                                        </>
-                                    )}
-                                </Td>
-                            </Tr>
-                        );
-                    })}
-                </Tbody>
-            </Table>
-        </TableContainer>
+                                <CustomAlertDialog
+                                    title="Accept Applicant"
+                                    body={`Are you sure you want to accept ${applicant.name} into the Business Visa program?`}
+                                    isOpen={isOpenAcceptAlert[applicant.id]}
+                                    onClose={() =>
+                                        closeAcceptAlert(applicant.id)
+                                    }
+                                    actionText="Accept"
+                                    actionFn={() =>
+                                        acceptHandler(
+                                            applicant.id,
+                                            applicant.email
+                                        )
+                                    }
+                                    type="success"
+                                />
+                                <CustomAlertDialog
+                                    title="Reject Applicant"
+                                    body={`Are you sure you want to reject ${applicant.name} for the Business Visa program?`}
+                                    isOpen={isOpenRejectAlert[applicant.id]}
+                                    onClose={() =>
+                                        closeRejectAlert(applicant.id)
+                                    }
+                                    actionText="Reject"
+                                    actionFn={() =>
+                                        rejectHandler(
+                                            applicant.id,
+                                            applicant.email
+                                        )
+                                    }
+                                    type="danger"
+                                />
+                            </>
+                        )}
+                    </VStack>
+                );
+            })}
+        </SimpleGrid>
     );
 };
 
