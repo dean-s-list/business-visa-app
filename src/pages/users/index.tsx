@@ -1,13 +1,5 @@
-import {
-    Box,
-    Table,
-    TableContainer,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr,
-} from "@chakra-ui/react";
+/* eslint-disable sonarjs/no-duplicate-string */
+import { Box, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import format from "date-fns/format";
 import Head from "next/head";
 
@@ -19,24 +11,6 @@ import PageError from "@/src/components/common/PageError";
 import useUsers from "@/src/hooks/useUsers";
 
 export const DEFAULT_DATE_FORMAT = "dd MMMM yyyy hh:mm a";
-
-const usersTableColumns = [
-    { name: "ID", isNumeric: false },
-    { name: "Name" },
-    { name: "Email" },
-    { name: "Solana Wallet Address" },
-    { name: "Discord Id" },
-    { name: "Role" },
-    { name: "Country" },
-    { name: "NFT Type" },
-    { name: "Underdog NFT ID" },
-    { name: "Underdog NFT Issued At" },
-    { name: "Underdog NFT Expires At" },
-    { name: "Underdog NFT Status" },
-    { name: "Underdog NFT Renewed At" },
-    { name: "Created At" },
-    { name: "Updated At" },
-];
 
 const RenderUsersPage = () => {
     const { isLoading, isFetching, data, isError, refetch } = useUsers();
@@ -60,82 +34,123 @@ const RenderUsersPage = () => {
     }
 
     return (
-        <TableContainer>
-            <Table colorScheme="purple">
-                <Thead>
-                    <Tr>
-                        {usersTableColumns.map((col) => {
-                            return (
-                                <Th
-                                    color="purple.400"
-                                    key={col.name}
-                                    isNumeric={col?.isNumeric}
-                                >
-                                    {col.name}
-                                </Th>
-                            );
-                        })}
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {data?.map((user) => {
-                        const nftIssueDate = user.nftIssuedAt
-                            ? format(
-                                  new Date(user.nftIssuedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-
-                        const nftExpireDate = user.nftExpiresAt
-                            ? format(
-                                  new Date(user.nftExpiresAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-
-                        const nftRenewDate = user.nftRenewedAt
-                            ? format(
-                                  new Date(user.nftRenewedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-
-                        const userCreateDate = user.createdAt
-                            ? format(
-                                  new Date(user.createdAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-
-                        const userUpdateDate = user.updatedAt
-                            ? format(
-                                  new Date(user.updatedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-                        return (
-                            <Tr key={user.id}>
-                                <Td>{user.id}</Td>
-                                <Td>{user.name ?? "N/A"}</Td>
-                                <Td>{user.email}</Td>
-                                <Td>{user.walletAddress}</Td>
-                                <Td>{user.discordId}</Td>
-                                <Td>{user.role}</Td>
-                                <Td>{user.country ?? "N/A"}</Td>
-                                <Td>{user.nftType}</Td>
-                                <Td>{user.nftId ?? "N/A"}</Td>
-                                <Td>{nftIssueDate ?? "N/A"}</Td>
-                                <Td>{nftExpireDate ?? "N/A"}</Td>
-                                <Td>{user.nftStatus ?? "N/A"}</Td>
-                                <Td>{nftRenewDate ?? "N/A"}</Td>
-                                <Td>{userCreateDate ?? "N/A"}</Td>
-                                <Td>{userUpdateDate ?? "N/A"}</Td>
-                            </Tr>
-                        );
-                    })}
-                </Tbody>
-            </Table>
-        </TableContainer>
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+            {data.map((user) => {
+                return (
+                    <VStack
+                        w="100%"
+                        key={user.id}
+                        border="2px"
+                        borderColor="white"
+                        borderRadius="10px"
+                        p={4}
+                        alignItems="flex-start"
+                        spacing={6}
+                        wordBreak="break-all"
+                    >
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>User ID</Text>
+                            <Text color="purple.400">{user.id}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Name</Text>
+                            <Text color="purple.400">{user.name}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Wallet Address</Text>
+                            <Text color="purple.400">{user.walletAddress}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Email</Text>
+                            <Text color="purple.400">{user.email}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Discord Username</Text>
+                            <Text color="purple.400">{user.discordId}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Country</Text>
+                            <Text color="purple.400">{user.country}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Role</Text>
+                            <Text color="purple.400">{user.role}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>NFT Type</Text>
+                            <Text color="purple.400">{user.nftType}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Underdog NFT Status</Text>
+                            <Text color="purple.400">{user.nftStatus}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Underdog NFT ID</Text>
+                            <Text color="purple.400">{user.nftId}</Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Underdog NFT Issued At</Text>
+                            <Text color="purple.400">
+                                {user.nftIssuedAt
+                                    ? format(
+                                          new Date(user.nftIssuedAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Underdog NFT Expires At
+                            </Text>
+                            <Text color="purple.400">
+                                {user.nftExpiresAt
+                                    ? format(
+                                          new Date(user.nftExpiresAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>
+                                Underdog NFT Renewed At
+                            </Text>
+                            <Text color="purple.400">
+                                {user.nftRenewedAt
+                                    ? format(
+                                          new Date(user.nftRenewedAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Creation Date</Text>
+                            <Text color="purple.400">
+                                {user.createdAt
+                                    ? format(
+                                          new Date(user.createdAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                        <VStack w="100%" alignItems="flex-start">
+                            <Text fontWeight={600}>Update Date</Text>
+                            <Text color="purple.400">
+                                {user.updatedAt
+                                    ? format(
+                                          new Date(user.updatedAt),
+                                          "MMM dd, yyyy hh:mm a"
+                                      )
+                                    : "N/A"}
+                            </Text>
+                        </VStack>
+                    </VStack>
+                );
+            })}
+        </SimpleGrid>
     );
 };
 
