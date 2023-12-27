@@ -1,15 +1,17 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import {
     Box,
-    Table,
-    TableContainer,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr,
+    Center,
+    HStack,
+    Input,
+    Select,
+    SimpleGrid,
+    Text,
+    VStack,
 } from "@chakra-ui/react";
 import format from "date-fns/format";
 import Head from "next/head";
+import { useEffect, useState } from "react";
 
 import ProtectedRoute from "@/src/components/auth/ProtectedRoute";
 import CustomContainer from "@/src/components/common/CustomContainer";
@@ -20,26 +22,66 @@ import useUsers from "@/src/hooks/useUsers";
 
 export const DEFAULT_DATE_FORMAT = "dd MMMM yyyy hh:mm a";
 
-const usersTableColumns = [
-    { name: "ID", isNumeric: false },
-    { name: "Name" },
-    { name: "Email" },
-    { name: "Solana Wallet Address" },
-    { name: "Discord Id" },
-    { name: "Role" },
-    { name: "Country" },
-    { name: "NFT Type" },
-    { name: "Underdog NFT ID" },
-    { name: "Underdog NFT Issued At" },
-    { name: "Underdog NFT Expires At" },
-    { name: "Underdog NFT Status" },
-    { name: "Underdog NFT Renewed At" },
-    { name: "Created At" },
-    { name: "Updated At" },
-];
-
 const RenderUsersPage = () => {
     const { isLoading, isFetching, data, isError, refetch } = useUsers();
+
+    const [selectedStatusFilter, setSelectedStatusFilter] = useState<
+        "all" | "active" | "expired"
+    >("all");
+    const [selectedSort, setSelectedSort] = useState<"latest" | "oldest">(
+        "latest"
+    );
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
+    const [filteredData, setFilteredData] = useState(data);
+
+    useEffect(() => {
+        const fData = data?.filter((user) => {
+            if (selectedStatusFilter === "all") {
+                return true;
+            }
+            return user.nftStatus === selectedStatusFilter;
+        });
+
+        const sData = fData?.sort((a, b) => {
+            if (selectedSort === "latest") {
+                return (
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                );
+            }
+
+            return (
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime()
+            );
+        });
+
+        const searchData = sData?.filter((d) => {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+            if (d.name?.toLowerCase()?.includes(lowerCaseSearchTerm)) {
+                return true;
+            }
+
+            if (d.email?.toLowerCase()?.includes(lowerCaseSearchTerm)) {
+                return true;
+            }
+
+            if (d.walletAddress?.toLowerCase()?.includes(lowerCaseSearchTerm)) {
+                return true;
+            }
+
+            // eslint-disable-next-line sonarjs/prefer-single-boolean-return
+            if (d.discordId?.toLowerCase()?.includes(lowerCaseSearchTerm)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        setFilteredData(searchData);
+    }, [data, selectedStatusFilter, selectedSort, searchTerm]); // eslint-disable-line
 
     if (isLoading || isFetching) {
         return <PageDataLoading loadingText="Loading Users" />;
@@ -55,87 +97,196 @@ const RenderUsersPage = () => {
         );
     }
 
-    if (data.length === 0) {
+    if (data?.length === 0) {
         return <PageDataNotFound message="No users found!" />;
     }
 
     return (
-        <TableContainer>
-            <Table colorScheme="purple">
-                <Thead>
-                    <Tr>
-                        {usersTableColumns.map((col) => {
-                            return (
-                                <Th
-                                    color="purple.400"
-                                    key={col.name}
-                                    isNumeric={col?.isNumeric}
-                                >
-                                    {col.name}
-                                </Th>
+        <VStack alignItems="flex-start" w="100%" spacing={6}>
+            <HStack w="100%" justifyContent="flex-end" spacing={6}>
+                <VStack alignItems="flex-start" flexGrow={1}>
+                    <Text fontWeight={600}>
+                        Search (By name, wallet, email, discord)
+                    </Text>
+                    <Input
+                        placeholder="Enter here"
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                        }}
+                    />
+                </VStack>
+                <VStack alignItems="flex-start">
+                    <Text fontWeight={600}>Filter by Status</Text>
+                    <Select
+                        defaultValue="all"
+                        onChange={(e) => {
+                            setSelectedStatusFilter(
+                                e.target.value as "all" | "active" | "expired"
                             );
-                        })}
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {data?.map((user) => {
-                        const nftIssueDate = user.nftIssuedAt
-                            ? format(
-                                  new Date(user.nftIssuedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
+                        }}
+                    >
+                        <option value="all">All</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                    </Select>
+                </VStack>
+                <VStack alignItems="flex-start">
+                    <Text fontWeight={600}>Sort By Time</Text>
+                    <Select
+                        defaultValue="latest"
+                        onChange={(e) => {
+                            setSelectedSort(
+                                e.target.value as "latest" | "oldest"
+                            );
+                        }}
+                    >
+                        <option value="latest">Latest</option>
+                        <option value="oldest">Oldest</option>
+                    </Select>
+                </VStack>
+            </HStack>
 
-                        const nftExpireDate = user.nftExpiresAt
-                            ? format(
-                                  new Date(user.nftExpiresAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
+            <HStack w="100%" justifyContent="flex-start" spacing={6}>
+                <VStack alignItems="flex-start">
+                    <Text fontWeight={600}>Total Users</Text>
+                    <Text color="purple.400">{data?.length}</Text>
+                </VStack>
+                <VStack alignItems="flex-start">
+                    <Text fontWeight={600}>Filtered Users</Text>
+                    <Text color="purple.400">{filteredData?.length}</Text>
+                </VStack>
+            </HStack>
 
-                        const nftRenewDate = user.nftRenewedAt
-                            ? format(
-                                  new Date(user.nftRenewedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
+            {filteredData?.length === 0 && (
+                <Center w="100%">
+                    <PageDataNotFound message="No data found for this filter!" />
+                </Center>
+            )}
 
-                        const userCreateDate = user.createdAt
-                            ? format(
-                                  new Date(user.createdAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-
-                        const userUpdateDate = user.updatedAt
-                            ? format(
-                                  new Date(user.updatedAt),
-                                  DEFAULT_DATE_FORMAT
-                              )
-                            : null;
-                        return (
-                            <Tr key={user.id}>
-                                <Td>{user.id}</Td>
-                                <Td>{user.name ?? "N/A"}</Td>
-                                <Td>{user.email}</Td>
-                                <Td>{user.walletAddress}</Td>
-                                <Td>{user.discordId}</Td>
-                                <Td>{user.role}</Td>
-                                <Td>{user.country ?? "N/A"}</Td>
-                                <Td>{user.nftType}</Td>
-                                <Td>{user.nftId ?? "N/A"}</Td>
-                                <Td>{nftIssueDate ?? "N/A"}</Td>
-                                <Td>{nftExpireDate ?? "N/A"}</Td>
-                                <Td>{user.nftStatus ?? "N/A"}</Td>
-                                <Td>{nftRenewDate ?? "N/A"}</Td>
-                                <Td>{userCreateDate ?? "N/A"}</Td>
-                                <Td>{userUpdateDate ?? "N/A"}</Td>
-                            </Tr>
-                        );
-                    })}
-                </Tbody>
-            </Table>
-        </TableContainer>
+            <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} w="100%">
+                {filteredData?.map((user) => {
+                    return (
+                        <VStack
+                            w="100%"
+                            key={user.id}
+                            border="2px"
+                            borderColor="white"
+                            borderRadius="10px"
+                            p={4}
+                            alignItems="flex-start"
+                            spacing={6}
+                            wordBreak="break-all"
+                        >
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>User ID</Text>
+                                <Text color="purple.400">{user.id}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Name</Text>
+                                <Text color="purple.400">{user.name}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Wallet Address</Text>
+                                <Text color="purple.400">
+                                    {user.walletAddress}
+                                </Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Email</Text>
+                                <Text color="purple.400">{user.email}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Discord Username</Text>
+                                <Text color="purple.400">{user.discordId}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Country</Text>
+                                <Text color="purple.400">{user.country}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Role</Text>
+                                <Text color="purple.400">{user.role}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>NFT Type</Text>
+                                <Text color="purple.400">{user.nftType}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>
+                                    Underdog NFT Status
+                                </Text>
+                                <Text color="purple.400">{user.nftStatus}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Underdog NFT ID</Text>
+                                <Text color="purple.400">{user.nftId}</Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>
+                                    Underdog NFT Issued At
+                                </Text>
+                                <Text color="purple.400">
+                                    {user.nftIssuedAt
+                                        ? format(
+                                              new Date(user.nftIssuedAt),
+                                              "MMM dd, yyyy hh:mm a"
+                                          )
+                                        : "N/A"}
+                                </Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>
+                                    Underdog NFT Expires At
+                                </Text>
+                                <Text color="purple.400">
+                                    {user.nftExpiresAt
+                                        ? format(
+                                              new Date(user.nftExpiresAt),
+                                              "MMM dd, yyyy hh:mm a"
+                                          )
+                                        : "N/A"}
+                                </Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>
+                                    Underdog NFT Renewed At
+                                </Text>
+                                <Text color="purple.400">
+                                    {user.nftRenewedAt
+                                        ? format(
+                                              new Date(user.nftRenewedAt),
+                                              "MMM dd, yyyy hh:mm a"
+                                          )
+                                        : "N/A"}
+                                </Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Creation Date</Text>
+                                <Text color="purple.400">
+                                    {user.createdAt
+                                        ? format(
+                                              new Date(user.createdAt),
+                                              "MMM dd, yyyy hh:mm a"
+                                          )
+                                        : "N/A"}
+                                </Text>
+                            </VStack>
+                            <VStack w="100%" alignItems="flex-start">
+                                <Text fontWeight={600}>Update Date</Text>
+                                <Text color="purple.400">
+                                    {user.updatedAt
+                                        ? format(
+                                              new Date(user.updatedAt),
+                                              "MMM dd, yyyy hh:mm a"
+                                          )
+                                        : "N/A"}
+                                </Text>
+                            </VStack>
+                        </VStack>
+                    );
+                })}
+            </SimpleGrid>
+        </VStack>
     );
 };
 
