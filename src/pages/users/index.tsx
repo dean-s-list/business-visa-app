@@ -1,7 +1,9 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import {
     Box,
+    Button,
     Center,
+    Flex,
     HStack,
     Input,
     Select,
@@ -18,7 +20,16 @@ import CustomContainer from "@/src/components/common/CustomContainer";
 import PageDataLoading from "@/src/components/common/PageDataLoading";
 import PageDataNotFound from "@/src/components/common/PageDataNotFound";
 import PageError from "@/src/components/common/PageError";
+import {
+    showErrorToast,
+    showLoadingToast,
+    showSuccessToast,
+} from "@/src/components/common/ToastNotification";
+import useExpireUser from "@/src/hooks/useExpireUser";
+import useRenewUser from "@/src/hooks/useRenewUser";
 import useUsers from "@/src/hooks/useUsers";
+import { logError } from "@/src/lib/utils/general";
+import Link from "next/link";
 
 export const DEFAULT_DATE_FORMAT = "dd MMMM yyyy hh:mm a";
 
@@ -34,6 +45,69 @@ const RenderUsersPage = () => {
     const [searchTerm, setSearchTerm] = useState<string>("");
 
     const [filteredData, setFilteredData] = useState(data);
+
+    const renewUserMutation = useRenewUser();
+    const expireUserMutation = useExpireUser();
+
+    async function renewUserHandler(userId: number) {
+        const toastId = "renew-user-toast";
+
+        showLoadingToast({
+            id: toastId,
+            message: "Renewing user",
+        });
+
+        try {
+            const response = await renewUserMutation.mutateAsync({
+                id: userId,
+            });
+
+            if (!response.success) {
+                throw new Error(response.message || "Failed to renew user!");
+            }
+
+            showSuccessToast({
+                id: toastId,
+                message: "User renewed successfully!",
+            });
+        } catch (error) {
+            logError("renewUserHandler =>", error);
+            showErrorToast({
+                id: toastId,
+                message: "Failed to renew user",
+            });
+        }
+    }
+
+    async function expireUserHandler(userId: number) {
+        const toastId = "expire-user-toast";
+
+        showLoadingToast({
+            id: toastId,
+            message: "Expiring user",
+        });
+
+        try {
+            const response = await expireUserMutation.mutateAsync({
+                id: userId,
+            });
+
+            if (!response.success) {
+                throw new Error(response.message || "Failed to expire user!");
+            }
+
+            showSuccessToast({
+                id: toastId,
+                message: "User expired successfully!",
+            });
+        } catch (error) {
+            logError("expireUserHandler =>", error);
+            showErrorToast({
+                id: toastId,
+                message: "Failed to expire user",
+            });
+        }
+    }
 
     useEffect(() => {
         const fData = data?.filter((user) => {
@@ -155,6 +229,9 @@ const RenderUsersPage = () => {
                     <Text fontWeight={600}>Filtered Users</Text>
                     <Text color="purple.400">{filteredData?.length}</Text>
                 </VStack>
+                <Button as={Link} href="/earnings">
+                    Update Earnings
+                </Button>
             </HStack>
 
             {filteredData?.length === 0 && (
@@ -282,6 +359,29 @@ const RenderUsersPage = () => {
                                         : "N/A"}
                                 </Text>
                             </VStack>
+                            <Flex flexWrap="wrap" gap={4}>
+                                {user.nftStatus === "expired" && (
+                                    <Button
+                                        isLoading={renewUserMutation.isLoading}
+                                        onClick={() =>
+                                            renewUserHandler(user.id)
+                                        }
+                                    >
+                                        Renew Visa
+                                    </Button>
+                                )}
+                                {user.nftStatus === "active" && (
+                                    <Button
+                                        isLoading={expireUserMutation.isLoading}
+                                        colorScheme="red"
+                                        onClick={() =>
+                                            expireUserHandler(user.id)
+                                        }
+                                    >
+                                        Expire Visa
+                                    </Button>
+                                )}
+                            </Flex>
                         </VStack>
                     );
                 })}
