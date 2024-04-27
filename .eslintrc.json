@@ -5,6 +5,9 @@
         "plugin:@next/next/recommended",
         "plugin:@tanstack/eslint-plugin-query/recommended"
     ],
+    "rules": {
+        "import/order": "off"
+    },
     "parserOptions": {
         "project": ["./tsconfig.json"]
     }
